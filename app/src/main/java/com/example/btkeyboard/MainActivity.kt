@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
 import android.content.Context
 import android.os.Vibrator
 import android.os.VibrationEffect
@@ -419,7 +420,9 @@ fun KeyCap(
 
     var totalDragX by remember { mutableStateOf(0f) }
     var totalDragY by remember { mutableStateOf(0f) }
-    val threshold = 40f
+
+    val density = LocalDensity.current
+    val thresholdPx = with(density) { 50.dp.toPx() }
 
     LaunchedEffect(isPressed) {
         if (isFirstRun) {
@@ -471,11 +474,11 @@ fun KeyCap(
                             totalDragX += dragAmount.x
                             totalDragY += dragAmount.y
 
-                            if (abs(totalDragX) >= threshold) {
+                            if (abs(totalDragX) >= thresholdPx) {
                                 onDragIncrement(if (totalDragX > 0) "RIGHT" else "LEFT")
                                 totalDragX = 0f
                             }
-                            if (abs(totalDragY) >= threshold) {
+                            if (abs(totalDragY) >= thresholdPx) {
                                 onDragIncrement(if (totalDragY > 0) "DOWN" else "UP")
                                 totalDragY = 0f
                             }
