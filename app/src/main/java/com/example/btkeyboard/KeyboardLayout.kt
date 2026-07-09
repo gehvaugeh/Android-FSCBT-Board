@@ -8,6 +8,7 @@ data class KeyInfo(
     val modifierBit: Byte = 0,
     val shiftedLabel: String? = null,
     val fnLabel: String? = null,
+    val altGrLabel: String? = null,
     val isFn: Boolean = false
 )
 
@@ -102,18 +103,9 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
     object Qwerty : KeyboardLayout("QWERTY", listOf(
         listOf(
             KeyInfo("Esc", HidKeyCodes.KEY_ESC),
-            KeyInfo("F1", HidKeyCodes.KEY_F1),
-            KeyInfo("F2", HidKeyCodes.KEY_F2),
-            KeyInfo("F3", HidKeyCodes.KEY_F3),
-            KeyInfo("F4", HidKeyCodes.KEY_F4),
-            KeyInfo("F5", HidKeyCodes.KEY_F5),
-            KeyInfo("F6", HidKeyCodes.KEY_F6),
-            KeyInfo("F7", HidKeyCodes.KEY_F7),
-            KeyInfo("F8", HidKeyCodes.KEY_F8),
-            KeyInfo("F9", HidKeyCodes.KEY_F9),
-            KeyInfo("F10", HidKeyCodes.KEY_F10),
-            KeyInfo("F11", HidKeyCodes.KEY_F11),
-            KeyInfo("F12", HidKeyCodes.KEY_F12),
+            KeyInfo("F1", HidKeyCodes.KEY_F1), KeyInfo("F2", HidKeyCodes.KEY_F2), KeyInfo("F3", HidKeyCodes.KEY_F3), KeyInfo("F4", HidKeyCodes.KEY_F4),
+            KeyInfo("F5", HidKeyCodes.KEY_F5), KeyInfo("F6", HidKeyCodes.KEY_F6), KeyInfo("F7", HidKeyCodes.KEY_F7), KeyInfo("F8", HidKeyCodes.KEY_F8),
+            KeyInfo("F9", HidKeyCodes.KEY_F9), KeyInfo("F10", HidKeyCodes.KEY_F10), KeyInfo("F11", HidKeyCodes.KEY_F11), KeyInfo("F12", HidKeyCodes.KEY_F12),
         ),
         listOf(
             KeyInfo("`", HidKeyCodes.KEY_GRAVE, shiftedLabel = "~"),
@@ -181,7 +173,7 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
             KeyInfo("Fn", HidKeyCodes.KEY_NONE, 1.2f, isFn = true),
             KeyInfo("Alt", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_LEFT_ALT),
             KeyInfo("Space", HidKeyCodes.KEY_SPACE, 6f),
-            KeyInfo("Alt", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_RIGHT_ALT),
+            KeyInfo("AltGr", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_RIGHT_ALT),
             KeyInfo("Win", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_RIGHT_GUI),
             KeyInfo("Ctrl", HidKeyCodes.KEY_NONE, 1.5f, true, HidKeyCodes.MOD_RIGHT_CTRL)
         )
@@ -190,40 +182,31 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
     object Qwertz : KeyboardLayout("QWERTZ", listOf(
         listOf(
             KeyInfo("Esc", HidKeyCodes.KEY_ESC),
-            KeyInfo("F1", HidKeyCodes.KEY_F1),
-            KeyInfo("F2", HidKeyCodes.KEY_F2),
-            KeyInfo("F3", HidKeyCodes.KEY_F3),
-            KeyInfo("F4", HidKeyCodes.KEY_F4),
-            KeyInfo("F5", HidKeyCodes.KEY_F5),
-            KeyInfo("F6", HidKeyCodes.KEY_F6),
-            KeyInfo("F7", HidKeyCodes.KEY_F7),
-            KeyInfo("F8", HidKeyCodes.KEY_F8),
-            KeyInfo("F9", HidKeyCodes.KEY_F9),
-            KeyInfo("F10", HidKeyCodes.KEY_F10),
-            KeyInfo("F11", HidKeyCodes.KEY_F11),
-            KeyInfo("F12", HidKeyCodes.KEY_F12),
+            KeyInfo("F1", HidKeyCodes.KEY_F1), KeyInfo("F2", HidKeyCodes.KEY_F2), KeyInfo("F3", HidKeyCodes.KEY_F3), KeyInfo("F4", HidKeyCodes.KEY_F4),
+            KeyInfo("F5", HidKeyCodes.KEY_F5), KeyInfo("F6", HidKeyCodes.KEY_F6), KeyInfo("F7", HidKeyCodes.KEY_F7), KeyInfo("F8", HidKeyCodes.KEY_F8),
+            KeyInfo("F9", HidKeyCodes.KEY_F9), KeyInfo("F10", HidKeyCodes.KEY_F10), KeyInfo("F11", HidKeyCodes.KEY_F11), KeyInfo("F12", HidKeyCodes.KEY_F12),
         ),
         listOf(
             KeyInfo("^", HidKeyCodes.KEY_GRAVE, shiftedLabel = "°"),
             KeyInfo("1", HidKeyCodes.KEY_1, shiftedLabel = "!"),
-            KeyInfo("2", HidKeyCodes.KEY_2, shiftedLabel = "\""),
-            KeyInfo("3", HidKeyCodes.KEY_3, shiftedLabel = "§"),
+            KeyInfo("2", HidKeyCodes.KEY_2, shiftedLabel = "\"", altGrLabel = "²"),
+            KeyInfo("3", HidKeyCodes.KEY_3, shiftedLabel = "§", altGrLabel = "³"),
             KeyInfo("4", HidKeyCodes.KEY_4, shiftedLabel = "$"),
             KeyInfo("5", HidKeyCodes.KEY_5, shiftedLabel = "%"),
             KeyInfo("6", HidKeyCodes.KEY_6, shiftedLabel = "&"),
-            KeyInfo("7", HidKeyCodes.KEY_7, shiftedLabel = "/"),
-            KeyInfo("8", HidKeyCodes.KEY_8, shiftedLabel = "("),
-            KeyInfo("9", HidKeyCodes.KEY_9, shiftedLabel = ")"),
-            KeyInfo("0", HidKeyCodes.KEY_0, shiftedLabel = "="),
-            KeyInfo("ß", HidKeyCodes.KEY_MINUS, shiftedLabel = "?"),
+            KeyInfo("7", HidKeyCodes.KEY_7, shiftedLabel = "/", altGrLabel = "{"),
+            KeyInfo("8", HidKeyCodes.KEY_8, shiftedLabel = "(", altGrLabel = "["),
+            KeyInfo("9", HidKeyCodes.KEY_9, shiftedLabel = ")", altGrLabel = "]"),
+            KeyInfo("0", HidKeyCodes.KEY_0, shiftedLabel = "=", altGrLabel = "}"),
+            KeyInfo("ß", HidKeyCodes.KEY_MINUS, shiftedLabel = "?", altGrLabel = "\\"),
             KeyInfo("´", HidKeyCodes.KEY_EQUAL, shiftedLabel = "`"),
             KeyInfo("Back", HidKeyCodes.KEY_BACKSPACE, 1.5f)
         ),
         listOf(
             KeyInfo("Tab", HidKeyCodes.KEY_TAB, 1.5f),
-            KeyInfo("q", HidKeyCodes.KEY_Q, shiftedLabel = "Q"),
+            KeyInfo("q", HidKeyCodes.KEY_Q, shiftedLabel = "Q", altGrLabel = "@"),
             KeyInfo("w", HidKeyCodes.KEY_W, shiftedLabel = "W"),
-            KeyInfo("e", HidKeyCodes.KEY_E, shiftedLabel = "E"),
+            KeyInfo("e", HidKeyCodes.KEY_E, shiftedLabel = "E", altGrLabel = "€"),
             KeyInfo("r", HidKeyCodes.KEY_R, shiftedLabel = "R"),
             KeyInfo("t", HidKeyCodes.KEY_T, shiftedLabel = "T"),
             KeyInfo("z", HidKeyCodes.KEY_Y, shiftedLabel = "Z"),
@@ -232,7 +215,7 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
             KeyInfo("o", HidKeyCodes.KEY_O, shiftedLabel = "O"),
             KeyInfo("p", HidKeyCodes.KEY_P, shiftedLabel = "P"),
             KeyInfo("ü", HidKeyCodes.KEY_LEFT_BRACKET, shiftedLabel = "Ü"),
-            KeyInfo("+", HidKeyCodes.KEY_RIGHT_BRACKET, shiftedLabel = "*"),
+            KeyInfo("+", HidKeyCodes.KEY_RIGHT_BRACKET, shiftedLabel = "*", altGrLabel = "~"),
             KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.5f)
         ),
         listOf(
@@ -253,14 +236,14 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
         ),
         listOf(
             KeyInfo("Shift", HidKeyCodes.KEY_NONE, 1.3f, true, HidKeyCodes.MOD_LEFT_SHIFT),
-            KeyInfo("<", 0x64.toByte(), shiftedLabel = ">"),
+            KeyInfo("<", 0x64.toByte(), shiftedLabel = ">", altGrLabel = "|"),
             KeyInfo("y", HidKeyCodes.KEY_Z, shiftedLabel = "Y"),
             KeyInfo("x", HidKeyCodes.KEY_X, shiftedLabel = "X"),
             KeyInfo("c", HidKeyCodes.KEY_C, shiftedLabel = "C"),
             KeyInfo("v", HidKeyCodes.KEY_V, shiftedLabel = "V"),
             KeyInfo("b", HidKeyCodes.KEY_B, shiftedLabel = "B"),
             KeyInfo("n", HidKeyCodes.KEY_N, shiftedLabel = "N"),
-            KeyInfo("m", HidKeyCodes.KEY_M, shiftedLabel = "M"),
+            KeyInfo("m", HidKeyCodes.KEY_M, shiftedLabel = "M", altGrLabel = "µ"),
             KeyInfo(",", HidKeyCodes.KEY_COMMA, shiftedLabel = ";"),
             KeyInfo(".", HidKeyCodes.KEY_DOT, shiftedLabel = ":"),
             KeyInfo("-", HidKeyCodes.KEY_SLASH, shiftedLabel = "_"),
@@ -284,15 +267,15 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
         ),
         SplitRows(
             listOf(KeyInfo("`", HidKeyCodes.KEY_GRAVE, shiftedLabel = "~"), KeyInfo("1", HidKeyCodes.KEY_1, shiftedLabel = "!"), KeyInfo("2", HidKeyCodes.KEY_2, shiftedLabel = "@"), KeyInfo("3", HidKeyCodes.KEY_3, shiftedLabel = "#"), KeyInfo("4", HidKeyCodes.KEY_4, shiftedLabel = "$"), KeyInfo("5", HidKeyCodes.KEY_5, shiftedLabel = "%")),
-            listOf(KeyInfo("6", HidKeyCodes.KEY_6, shiftedLabel = "^"), KeyInfo("7", HidKeyCodes.KEY_7, shiftedLabel = "&"), KeyInfo("8", HidKeyCodes.KEY_8, shiftedLabel = "*"), KeyInfo("9", HidKeyCodes.KEY_9, shiftedLabel = "("), KeyInfo("0", HidKeyCodes.KEY_0, shiftedLabel = ")"), KeyInfo("-", HidKeyCodes.KEY_MINUS, shiftedLabel = "_"), KeyInfo("Back", HidKeyCodes.KEY_BACKSPACE, 1.5f))
+            listOf(KeyInfo("6", HidKeyCodes.KEY_6, shiftedLabel = "^"), KeyInfo("7", HidKeyCodes.KEY_7, shiftedLabel = "&"), KeyInfo("8", HidKeyCodes.KEY_8, shiftedLabel = "*"), KeyInfo("9", HidKeyCodes.KEY_9, shiftedLabel = "("), KeyInfo("0", HidKeyCodes.KEY_0, shiftedLabel = ")"), KeyInfo("-", HidKeyCodes.KEY_MINUS, shiftedLabel = "_"), KeyInfo("=", HidKeyCodes.KEY_EQUAL, shiftedLabel = "+"), KeyInfo("Back", HidKeyCodes.KEY_BACKSPACE, 1.2f))
         ),
         SplitRows(
             listOf(KeyInfo("Tab", HidKeyCodes.KEY_TAB, 1.2f), KeyInfo("q", HidKeyCodes.KEY_Q, shiftedLabel = "Q"), KeyInfo("w", HidKeyCodes.KEY_W, shiftedLabel = "W"), KeyInfo("e", HidKeyCodes.KEY_E, shiftedLabel = "E"), KeyInfo("r", HidKeyCodes.KEY_R, shiftedLabel = "R"), KeyInfo("t", HidKeyCodes.KEY_T, shiftedLabel = "T")),
-            listOf(KeyInfo("y", HidKeyCodes.KEY_Y, shiftedLabel = "Y"), KeyInfo("u", HidKeyCodes.KEY_U, shiftedLabel = "U"), KeyInfo("i", HidKeyCodes.KEY_I, shiftedLabel = "I"), KeyInfo("o", HidKeyCodes.KEY_O, shiftedLabel = "O"), KeyInfo("p", HidKeyCodes.KEY_P, shiftedLabel = "P"), KeyInfo("[", HidKeyCodes.KEY_LEFT_BRACKET, shiftedLabel = "{"), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.5f))
+            listOf(KeyInfo("y", HidKeyCodes.KEY_Y, shiftedLabel = "Y"), KeyInfo("u", HidKeyCodes.KEY_U, shiftedLabel = "U"), KeyInfo("i", HidKeyCodes.KEY_I, shiftedLabel = "I"), KeyInfo("o", HidKeyCodes.KEY_O, shiftedLabel = "O"), KeyInfo("p", HidKeyCodes.KEY_P, shiftedLabel = "P"), KeyInfo("[", HidKeyCodes.KEY_LEFT_BRACKET, shiftedLabel = "{"), KeyInfo("]", HidKeyCodes.KEY_RIGHT_BRACKET, shiftedLabel = "}"), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.2f))
         ),
         SplitRows(
             listOf(KeyInfo("Caps", HidKeyCodes.KEY_CAPS_LOCK, 1.5f), KeyInfo("a", HidKeyCodes.KEY_A, shiftedLabel = "A"), KeyInfo("s", HidKeyCodes.KEY_S, shiftedLabel = "S"), KeyInfo("d", HidKeyCodes.KEY_D, shiftedLabel = "D"), KeyInfo("f", HidKeyCodes.KEY_F, shiftedLabel = "F"), KeyInfo("g", HidKeyCodes.KEY_G, shiftedLabel = "G")),
-            listOf(KeyInfo("h", HidKeyCodes.KEY_H, shiftedLabel = "H"), KeyInfo("j", HidKeyCodes.KEY_J, shiftedLabel = "J"), KeyInfo("k", HidKeyCodes.KEY_K, shiftedLabel = "K", fnLabel = "Stick"), KeyInfo("l", HidKeyCodes.KEY_L, shiftedLabel = "L"), KeyInfo(";", HidKeyCodes.KEY_SEMICOLON, shiftedLabel = ":"), KeyInfo("'", HidKeyCodes.KEY_APOSTROPHE, shiftedLabel = "\""), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.2f))
+            listOf(KeyInfo("h", HidKeyCodes.KEY_H, shiftedLabel = "H"), KeyInfo("j", HidKeyCodes.KEY_J, shiftedLabel = "J"), KeyInfo("k", HidKeyCodes.KEY_K, shiftedLabel = "K", fnLabel = "Stick"), KeyInfo("l", HidKeyCodes.KEY_L, shiftedLabel = "L"), KeyInfo(";", HidKeyCodes.KEY_SEMICOLON, shiftedLabel = ":"), KeyInfo("'", HidKeyCodes.KEY_APOSTROPHE, shiftedLabel = "\""), KeyInfo("\\", HidKeyCodes.KEY_BACKSLASH, shiftedLabel = "|"), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.2f))
         ),
         SplitRows(
             listOf(KeyInfo("Shift", HidKeyCodes.KEY_NONE, 2.0f, true, HidKeyCodes.MOD_LEFT_SHIFT), KeyInfo("z", HidKeyCodes.KEY_Z, shiftedLabel = "Z"), KeyInfo("x", HidKeyCodes.KEY_X, shiftedLabel = "X"), KeyInfo("c", HidKeyCodes.KEY_C, shiftedLabel = "C"), KeyInfo("v", HidKeyCodes.KEY_V, shiftedLabel = "V")),
@@ -300,7 +283,7 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
         ),
         SplitRows(
             listOf(KeyInfo("Ctrl", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_LEFT_CTRL), KeyInfo("Fn", HidKeyCodes.KEY_NONE, 1.0f, isFn = true), KeyInfo("Alt", HidKeyCodes.KEY_NONE, 1.0f, true, HidKeyCodes.MOD_LEFT_ALT), KeyInfo("Space", HidKeyCodes.KEY_SPACE, 3f)),
-            listOf(KeyInfo("Space", HidKeyCodes.KEY_SPACE, 3f), KeyInfo("Alt", HidKeyCodes.KEY_NONE, 1.0f, true, HidKeyCodes.MOD_RIGHT_ALT), KeyInfo("Win", HidKeyCodes.KEY_NONE, 1.0f, true, HidKeyCodes.MOD_RIGHT_GUI), KeyInfo("Ctrl", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_RIGHT_CTRL))
+            listOf(KeyInfo("Space", HidKeyCodes.KEY_SPACE, 3f), KeyInfo("AltGr", HidKeyCodes.KEY_NONE, 1.0f, true, HidKeyCodes.MOD_RIGHT_ALT), KeyInfo("Win", HidKeyCodes.KEY_NONE, 1.0f, true, HidKeyCodes.MOD_RIGHT_GUI), KeyInfo("Ctrl", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_RIGHT_CTRL))
         )
     ))
 
@@ -310,20 +293,20 @@ sealed class KeyboardLayout(val name: String, val rows: List<List<KeyInfo>>, val
             listOf(KeyInfo("F6", HidKeyCodes.KEY_F6), KeyInfo("F7", HidKeyCodes.KEY_F7), KeyInfo("F8", HidKeyCodes.KEY_F8), KeyInfo("F9", HidKeyCodes.KEY_F9), KeyInfo("F10", HidKeyCodes.KEY_F10), KeyInfo("F11", HidKeyCodes.KEY_F11), KeyInfo("F12", HidKeyCodes.KEY_F12))
         ),
         SplitRows(
-            listOf(KeyInfo("^", HidKeyCodes.KEY_GRAVE, shiftedLabel = "°"), KeyInfo("1", HidKeyCodes.KEY_1, shiftedLabel = "!"), KeyInfo("2", HidKeyCodes.KEY_2, shiftedLabel = "\""), KeyInfo("3", HidKeyCodes.KEY_3, shiftedLabel = "§"), KeyInfo("4", HidKeyCodes.KEY_4, shiftedLabel = "$"), KeyInfo("5", HidKeyCodes.KEY_5, shiftedLabel = "%")),
-            listOf(KeyInfo("6", HidKeyCodes.KEY_6, shiftedLabel = "&"), KeyInfo("7", HidKeyCodes.KEY_7, shiftedLabel = "/"), KeyInfo("8", HidKeyCodes.KEY_8, shiftedLabel = "("), KeyInfo("9", HidKeyCodes.KEY_9, shiftedLabel = ")"), KeyInfo("0", HidKeyCodes.KEY_0, shiftedLabel = "="), KeyInfo("ß", HidKeyCodes.KEY_MINUS, shiftedLabel = "?"), KeyInfo("Back", HidKeyCodes.KEY_BACKSPACE, 1.5f))
+            listOf(KeyInfo("^", HidKeyCodes.KEY_GRAVE, shiftedLabel = "°"), KeyInfo("1", HidKeyCodes.KEY_1, shiftedLabel = "!"), KeyInfo("2", HidKeyCodes.KEY_2, shiftedLabel = "\"", altGrLabel = "²"), KeyInfo("3", HidKeyCodes.KEY_3, shiftedLabel = "§", altGrLabel = "³"), KeyInfo("4", HidKeyCodes.KEY_4, shiftedLabel = "$"), KeyInfo("5", HidKeyCodes.KEY_5, shiftedLabel = "%")),
+            listOf(KeyInfo("6", HidKeyCodes.KEY_6, shiftedLabel = "&"), KeyInfo("7", HidKeyCodes.KEY_7, shiftedLabel = "/", altGrLabel = "{"), KeyInfo("8", HidKeyCodes.KEY_8, shiftedLabel = "(", altGrLabel = "["), KeyInfo("9", HidKeyCodes.KEY_9, shiftedLabel = ")", altGrLabel = "]"), KeyInfo("0", HidKeyCodes.KEY_0, shiftedLabel = "=", altGrLabel = "}"), KeyInfo("ß", HidKeyCodes.KEY_MINUS, shiftedLabel = "?", altGrLabel = "\\"), KeyInfo("´", HidKeyCodes.KEY_EQUAL, shiftedLabel = "`"), KeyInfo("Back", HidKeyCodes.KEY_BACKSPACE, 1.2f))
         ),
         SplitRows(
-            listOf(KeyInfo("Tab", HidKeyCodes.KEY_TAB, 1.2f), KeyInfo("q", HidKeyCodes.KEY_Q, shiftedLabel = "Q"), KeyInfo("w", HidKeyCodes.KEY_W, shiftedLabel = "W"), KeyInfo("e", HidKeyCodes.KEY_E, shiftedLabel = "E"), KeyInfo("r", HidKeyCodes.KEY_R, shiftedLabel = "R"), KeyInfo("t", HidKeyCodes.KEY_T, shiftedLabel = "T")),
-            listOf(KeyInfo("z", HidKeyCodes.KEY_Y, shiftedLabel = "Z"), KeyInfo("u", HidKeyCodes.KEY_U, shiftedLabel = "U"), KeyInfo("i", HidKeyCodes.KEY_I, shiftedLabel = "I"), KeyInfo("o", HidKeyCodes.KEY_O, shiftedLabel = "O"), KeyInfo("p", HidKeyCodes.KEY_P, shiftedLabel = "P"), KeyInfo("ü", HidKeyCodes.KEY_LEFT_BRACKET, shiftedLabel = "Ü"), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.5f))
+            listOf(KeyInfo("Tab", HidKeyCodes.KEY_TAB, 1.2f), KeyInfo("q", HidKeyCodes.KEY_Q, shiftedLabel = "Q", altGrLabel = "@"), KeyInfo("w", HidKeyCodes.KEY_W, shiftedLabel = "W"), KeyInfo("e", HidKeyCodes.KEY_E, shiftedLabel = "E", altGrLabel = "€"), KeyInfo("r", HidKeyCodes.KEY_R, shiftedLabel = "R"), KeyInfo("t", HidKeyCodes.KEY_T, shiftedLabel = "T")),
+            listOf(KeyInfo("z", HidKeyCodes.KEY_Y, shiftedLabel = "Z"), KeyInfo("u", HidKeyCodes.KEY_U, shiftedLabel = "U"), KeyInfo("i", HidKeyCodes.KEY_I, shiftedLabel = "I"), KeyInfo("o", HidKeyCodes.KEY_O, shiftedLabel = "O"), KeyInfo("p", HidKeyCodes.KEY_P, shiftedLabel = "P"), KeyInfo("ü", HidKeyCodes.KEY_LEFT_BRACKET, shiftedLabel = "Ü"), KeyInfo("+", HidKeyCodes.KEY_RIGHT_BRACKET, shiftedLabel = "*", altGrLabel = "~"), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.2f))
         ),
         SplitRows(
             listOf(KeyInfo("Caps", HidKeyCodes.KEY_CAPS_LOCK, 1.5f), KeyInfo("a", HidKeyCodes.KEY_A, shiftedLabel = "A"), KeyInfo("s", HidKeyCodes.KEY_S, shiftedLabel = "S"), KeyInfo("d", HidKeyCodes.KEY_D, shiftedLabel = "D"), KeyInfo("f", HidKeyCodes.KEY_F, shiftedLabel = "F"), KeyInfo("g", HidKeyCodes.KEY_G, shiftedLabel = "G")),
-            listOf(KeyInfo("h", HidKeyCodes.KEY_H, shiftedLabel = "H"), KeyInfo("j", HidKeyCodes.KEY_J, shiftedLabel = "J"), KeyInfo("k", HidKeyCodes.KEY_K, shiftedLabel = "K", fnLabel = "Stick"), KeyInfo("l", HidKeyCodes.KEY_L, shiftedLabel = "L"), KeyInfo("ö", HidKeyCodes.KEY_SEMICOLON, shiftedLabel = "Ö"), KeyInfo("ä", HidKeyCodes.KEY_APOSTROPHE, shiftedLabel = "Ä"), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.2f))
+            listOf(KeyInfo("h", HidKeyCodes.KEY_H, shiftedLabel = "H"), KeyInfo("j", HidKeyCodes.KEY_J, shiftedLabel = "J"), KeyInfo("k", HidKeyCodes.KEY_K, shiftedLabel = "K", fnLabel = "Stick"), KeyInfo("l", HidKeyCodes.KEY_L, shiftedLabel = "L"), KeyInfo("ö", HidKeyCodes.KEY_SEMICOLON, shiftedLabel = "Ö"), KeyInfo("ä", HidKeyCodes.KEY_APOSTROPHE, shiftedLabel = "Ä"), KeyInfo("#", HidKeyCodes.KEY_BACKSLASH, shiftedLabel = "'"), KeyInfo("Enter", HidKeyCodes.KEY_ENTER, 1.2f))
         ),
         SplitRows(
-            listOf(KeyInfo("Shift", HidKeyCodes.KEY_NONE, 1.3f, true, HidKeyCodes.MOD_LEFT_SHIFT), KeyInfo("<", 0x64.toByte(), shiftedLabel = ">"), KeyInfo("y", HidKeyCodes.KEY_Z, shiftedLabel = "Y"), KeyInfo("x", HidKeyCodes.KEY_X, shiftedLabel = "X"), KeyInfo("c", HidKeyCodes.KEY_C, shiftedLabel = "C")),
-            listOf(KeyInfo("v", HidKeyCodes.KEY_V, shiftedLabel = "V"), KeyInfo("b", HidKeyCodes.KEY_B, shiftedLabel = "B"), KeyInfo("n", HidKeyCodes.KEY_N, shiftedLabel = "N"), KeyInfo("m", HidKeyCodes.KEY_M, shiftedLabel = "M"), KeyInfo(",", HidKeyCodes.KEY_COMMA, shiftedLabel = ";"), KeyInfo(".", HidKeyCodes.KEY_DOT, shiftedLabel = ":"), KeyInfo("Shift", HidKeyCodes.KEY_NONE, 2.0f, true, HidKeyCodes.MOD_RIGHT_SHIFT))
+            listOf(KeyInfo("Shift", HidKeyCodes.KEY_NONE, 1.3f, true, HidKeyCodes.MOD_LEFT_SHIFT), KeyInfo("<", 0x64.toByte(), shiftedLabel = ">", altGrLabel = "|"), KeyInfo("y", HidKeyCodes.KEY_Z, shiftedLabel = "Y"), KeyInfo("x", HidKeyCodes.KEY_X, shiftedLabel = "X"), KeyInfo("c", HidKeyCodes.KEY_C, shiftedLabel = "C")),
+            listOf(KeyInfo("v", HidKeyCodes.KEY_V, shiftedLabel = "V"), KeyInfo("b", HidKeyCodes.KEY_B, shiftedLabel = "B"), KeyInfo("n", HidKeyCodes.KEY_N, shiftedLabel = "N"), KeyInfo("m", HidKeyCodes.KEY_M, shiftedLabel = "M", altGrLabel = "µ"), KeyInfo(",", HidKeyCodes.KEY_COMMA, shiftedLabel = ";"), KeyInfo(".", HidKeyCodes.KEY_DOT, shiftedLabel = ":"), KeyInfo("-", HidKeyCodes.KEY_SLASH, shiftedLabel = "_"), KeyInfo("Shift", HidKeyCodes.KEY_NONE, 2.0f, true, HidKeyCodes.MOD_RIGHT_SHIFT))
         ),
         SplitRows(
             listOf(KeyInfo("Ctrl", HidKeyCodes.KEY_NONE, 1.2f, true, HidKeyCodes.MOD_LEFT_CTRL), KeyInfo("Fn", HidKeyCodes.KEY_NONE, 1.0f, isFn = true), KeyInfo("Alt", HidKeyCodes.KEY_NONE, 1.0f, true, HidKeyCodes.MOD_LEFT_ALT), KeyInfo("Space", HidKeyCodes.KEY_SPACE, 3f)),

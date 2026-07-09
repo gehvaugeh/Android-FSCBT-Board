@@ -221,6 +221,7 @@ fun KeyboardUI(
     val currentModifiers = (activeModifiers.toInt() or stickyModifiers.toInt()).toByte()
     val isShiftActive = (currentModifiers.toInt() and HidKeyCodes.MOD_LEFT_SHIFT.toInt() != 0) ||
                         (currentModifiers.toInt() and HidKeyCodes.MOD_RIGHT_SHIFT.toInt() != 0)
+    val isAltGrActive = (currentModifiers.toInt() and HidKeyCodes.MOD_RIGHT_ALT.toInt() != 0)
     val isFnActive = isFnPressed || isFnSticky
 
     val coroutineScope = rememberCoroutineScope()
@@ -254,7 +255,7 @@ fun KeyboardUI(
                 ) {
                     row.forEach { key ->
                         KeyboardKey(
-                            key, isFnActive, isShiftActive, isCapsLockActive, stickyModifiers, isFnSticky,
+                            key, isFnActive, isShiftActive, isAltGrActive, isCapsLockActive, stickyModifiers, isFnSticky,
                             stickyKeysEnabled, activeModifiers, pressedKeys,
                             onKeyTyped, { notifyChanges() }, ::sendTemporaryKey,
                             { activeModifiers = it }, { stickyModifiers = it },
@@ -276,7 +277,7 @@ fun KeyboardUI(
                     Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         splitRow.left.forEach { key ->
                             KeyboardKey(
-                                key, isFnActive, isShiftActive, isCapsLockActive, stickyModifiers, isFnSticky,
+                                key, isFnActive, isShiftActive, isAltGrActive, isCapsLockActive, stickyModifiers, isFnSticky,
                                 stickyKeysEnabled, activeModifiers, pressedKeys,
                                 onKeyTyped, { notifyChanges() }, ::sendTemporaryKey,
                                 { activeModifiers = it }, { stickyModifiers = it },
@@ -286,14 +287,14 @@ fun KeyboardUI(
                         }
                     }
 
-                    // Gap (Empty or with special keys)
+                    // Gap
                     Spacer(modifier = Modifier.width(120.dp))
 
                     // Right half
                     Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         splitRow.right.forEach { key ->
                             KeyboardKey(
-                                key, isFnActive, isShiftActive, isCapsLockActive, stickyModifiers, isFnSticky,
+                                key, isFnActive, isShiftActive, isAltGrActive, isCapsLockActive, stickyModifiers, isFnSticky,
                                 stickyKeysEnabled, activeModifiers, pressedKeys,
                                 onKeyTyped, { notifyChanges() }, ::sendTemporaryKey,
                                 { activeModifiers = it }, { stickyModifiers = it },
@@ -313,6 +314,7 @@ fun KeyboardKey(
     key: KeyInfo,
     isFnActive: Boolean,
     isShiftActive: Boolean,
+    isAltGrActive: Boolean,
     isCapsLockActive: Boolean,
     stickyModifiers: Byte,
     isFnSticky: Boolean,
@@ -335,6 +337,7 @@ fun KeyboardKey(
         key = key,
         modifier = modifier,
         isShiftActive = isShiftActive,
+        isAltGrActive = isAltGrActive,
         isFnActive = isFnActive,
         isCapsLockActive = isCapsLockActive,
         isSticky = (stickyModifiers.toInt() and key.modifierBit.toInt()) != 0 || (key.isFn && isFnSticky),
@@ -407,6 +410,7 @@ fun KeyCap(
     key: KeyInfo,
     modifier: Modifier = Modifier,
     isShiftActive: Boolean = false,
+    isAltGrActive: Boolean = false,
     isFnActive: Boolean = false,
     isCapsLockActive: Boolean = false,
     isSticky: Boolean = false,
@@ -440,6 +444,7 @@ fun KeyCap(
 
     val label = when {
         isFnActive && key.fnLabel != null -> key.fnLabel
+        isAltGrActive && key.altGrLabel != null -> key.altGrLabel
         isShiftActive && key.shiftedLabel != null -> key.shiftedLabel
         isCapsLockActive && key.label.length == 1 && key.label[0].isLetter() -> key.label.uppercase()
         else -> key.label
