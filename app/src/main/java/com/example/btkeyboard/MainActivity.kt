@@ -214,8 +214,19 @@ fun KeyboardUI(
                         (currentModifiers.toInt() and HidKeyCodes.MOD_RIGHT_SHIFT.toInt() != 0)
     val isFnActive = isFnPressed || isFnSticky
 
+    val coroutineScope = rememberCoroutineScope()
+
     fun notifyChanges() {
         onKeysChanged(pressedKeys.toByteArray(), currentModifiers)
+    }
+
+    fun sendTemporaryKey(keyCode: Byte) {
+        coroutineScope.launch {
+            onKeysChanged(byteArrayOf(keyCode), currentModifiers)
+            onKeyTyped()
+            delay(50)
+            onKeysChanged(byteArrayOf(), currentModifiers)
+        }
     }
 
     Column(
@@ -261,10 +272,12 @@ fun KeyboardUI(
                                 }
                                 onKeyTyped()
                             } else if (key.keyCode != HidKeyCodes.KEY_NONE) {
-                                if (!pressedKeys.contains(key.keyCode)) {
-                                    pressedKeys.add(key.keyCode)
+                                if (!(key.keyCode == HidKeyCodes.KEY_K && isFnActive)) {
+                                    if (!pressedKeys.contains(key.keyCode)) {
+                                        pressedKeys.add(key.keyCode)
+                                    }
+                                    onKeyTyped()
                                 }
-                                onKeyTyped()
                             }
                             notifyChanges()
                         },
@@ -288,33 +301,16 @@ fun KeyboardUI(
                             }
                             notifyChanges()
                         },
-                        onDrag = if (isStickKey) { dragAmount ->
-                            var arrowKey: Byte = HidKeyCodes.KEY_NONE
-                            val threshold = 20f
-                            if (abs(dragAmount.x) > abs(dragAmount.y)) {
-                                if (dragAmount.x > threshold) arrowKey = HidKeyCodes.KEY_RIGHT
-                                else if (dragAmount.x < -threshold) arrowKey = HidKeyCodes.KEY_LEFT
-                            } else {
-                                if (dragAmount.y > threshold) arrowKey = HidKeyCodes.KEY_DOWN
-                                else if (dragAmount.y < -threshold) arrowKey = HidKeyCodes.KEY_UP
+                        onDragIncrement = if (isStickKey) { direction ->
+                            val arrowKey = when (direction) {
+                                "UP" -> HidKeyCodes.KEY_UP
+                                "DOWN" -> HidKeyCodes.KEY_DOWN
+                                "LEFT" -> HidKeyCodes.KEY_LEFT
+                                "RIGHT" -> HidKeyCodes.KEY_RIGHT
+                                else -> HidKeyCodes.KEY_NONE
                             }
-
                             if (arrowKey != HidKeyCodes.KEY_NONE) {
-                                if (!pressedKeys.contains(arrowKey)) {
-                                    pressedKeys.clear()
-                                    pressedKeys.add(arrowKey)
-                                    notifyChanges()
-                                    onKeyTyped()
-                                }
-                            } else {
-                                if (pressedKeys.isNotEmpty() && (
-                                    pressedKeys.contains(HidKeyCodes.KEY_UP) ||
-                                    pressedKeys.contains(HidKeyCodes.KEY_DOWN) ||
-                                    pressedKeys.contains(HidKeyCodes.KEY_LEFT) ||
-                                    pressedKeys.contains(HidKeyCodes.KEY_RIGHT))) {
-                                    pressedKeys.clear()
-                                    notifyChanges()
-                                }
+                                sendTemporaryKey(arrowKey)
                             }
                         } else null
                     )
@@ -334,12 +330,15 @@ fun KeyCap(
     isSticky: Boolean = false,
     onPress: () -> Unit,
     onRelease: () -> Unit,
-    onDrag: ((Offset) -> Unit)? = null
+    onDragIncrement: ((String) -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     var isFirstRun by remember { mutableStateOf(true) }
-    var totalDrag by remember { mutableStateOf(Offset.Zero) }
+
+    var totalDragX by remember { mutableStateOf(0f) }
+    var totalDragY by remember { mutableStateOf(0f) }
+    val threshold = 40f
 
     LaunchedEffect(isPressed) {
         if (isFirstRun) {
@@ -347,7 +346,8 @@ fun KeyCap(
             return@LaunchedEffect
         }
         if (isPressed) {
-            totalDrag = Offset.Zero
+            totalDragX = 0f
+            totalDragY = 0f
             onPress()
         } else {
             onRelease()
@@ -377,15 +377,27 @@ fun KeyCap(
         modifier = modifier
             .fillMaxHeight()
             .pointerInput(key.keyCode, isFnActive) {
-                if (onDrag != null) {
+                if (onDragIncrement != null) {
                     detectDragGestures(
-                        onDragStart = { totalDrag = Offset.Zero },
+                        onDragStart = {
+                            totalDragX = 0f
+                            totalDragY = 0f
+                        },
                         onDragEnd = { onRelease() },
                         onDragCancel = { onRelease() },
                         onDrag = { change, dragAmount ->
                             change.consume()
-                            totalDrag += dragAmount
-                            onDrag(totalDrag)
+                            totalDragX += dragAmount.x
+                            totalDragY += dragAmount.y
+
+                            if (abs(totalDragX) >= threshold) {
+                                onDragIncrement(if (totalDragX > 0) "RIGHT" else "LEFT")
+                                totalDragX = 0f
+                            }
+                            if (abs(totalDragY) >= threshold) {
+                                onDragIncrement(if (totalDragY > 0) "DOWN" else "UP")
+                                totalDragY = 0f
+                            }
                         }
                     )
                 }

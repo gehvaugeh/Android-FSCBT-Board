@@ -3,7 +3,14 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Keyboard body -->
     <path
-        android:fillColor="#000000"
-        android:pathData="M20,40h68v28h-68z M25,45h10v5h-10z M40,45h10v5h-10z M55,45h10v5h-10z M70,45h10v5h-10z M25,55h58v8h-58z" />
+        android:fillColor="#3DDC84"
+        android:pathData="M15,30h78a5,5 0 0 1 5,5v38a5,5 0 0 1 -5,5h-78a5,5 0 0 1 -5,-5v-38a5,5 0 0 1 5,-5z" />
+    <!-- Keys -->
+    <group android:translateX="20" android:translateY="38">
+        <path android:fillColor="#FFFFFF" android:pathData="M0,0h8v8h-8z M12,0h8v8h-8z M24,0h8v8h-8z M36,0h8v8h-8z M48,0h8v8h-8z M60,0h8v8h-8z" />
+        <path android:fillColor="#FFFFFF" android:pathData="M0,12h8v8h-8z M12,12h8v8h-8z M24,12h8v8h-8z M36,12h8v8h-8z M48,12h8v8h-8z M60,12h8v8h-8z" />
+        <path android:fillColor="#FFFFFF" android:pathData="M0,24h12v8h-12z M16,24h36v8h-36z M56,24h12v8h-12z" />
+    </group>
 </vector>
