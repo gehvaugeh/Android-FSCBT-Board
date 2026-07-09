@@ -84,7 +84,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun KeyboardApp(bluetoothHidService: BluetoothHidService) {
     var isDarkTheme by remember { mutableStateOf(true) }
-    var currentLayout by remember { mutableStateOf<KeyboardLayout>(KeyboardLayout.Qwerty) }
+    var currentLayoutIndex by remember { mutableIntStateOf(0) }
+    val layouts = listOf(
+        KeyboardLayout.Qwerty,
+        KeyboardLayout.Qwertz,
+        KeyboardLayout.ThumbQwerty,
+        KeyboardLayout.ThumbQwertz
+    )
+    val currentLayout = layouts[currentLayoutIndex]
+
     var hapticEnabled by remember { mutableStateOf(true) }
     var stickyKeysEnabled by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(true) }
@@ -130,7 +138,7 @@ fun KeyboardApp(bluetoothHidService: BluetoothHidService) {
                             Spacer(Modifier.width(4.dp))
                             Button(
                                 onClick = {
-                                    currentLayout = if (currentLayout == KeyboardLayout.Qwerty) KeyboardLayout.Qwertz else KeyboardLayout.Qwerty
+                                    currentLayoutIndex = (currentLayoutIndex + 1) % layouts.size
                                 },
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                                 modifier = Modifier.height(32.dp)
@@ -235,89 +243,162 @@ fun KeyboardUI(
             .padding(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        layout.rows.forEach { row ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                row.forEach { key ->
-                    val isStickKey = key.keyCode == HidKeyCodes.KEY_K && isFnActive
+        if (!layout.isSplit) {
+            layout.rows.forEach { row ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    row.forEach { key ->
+                        KeyboardKey(
+                            key, isFnActive, isShiftActive, isCapsLockActive, stickyModifiers, isFnSticky,
+                            stickyKeysEnabled, activeModifiers, pressedKeys,
+                            onKeyTyped, { notifyChanges() }, ::sendTemporaryKey,
+                            { activeModifiers = it }, { stickyModifiers = it },
+                            { isFnPressed = it }, { isFnSticky = it }, { isCapsLockActive = it },
+                            Modifier.weight(key.weight)
+                        )
+                    }
+                }
+            }
+        } else {
+            layout.splitRows.forEach { splitRow ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    // Left half
+                    Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        splitRow.left.forEach { key ->
+                            KeyboardKey(
+                                key, isFnActive, isShiftActive, isCapsLockActive, stickyModifiers, isFnSticky,
+                                stickyKeysEnabled, activeModifiers, pressedKeys,
+                                onKeyTyped, { notifyChanges() }, ::sendTemporaryKey,
+                                { activeModifiers = it }, { stickyModifiers = it },
+                                { isFnPressed = it }, { isFnSticky = it }, { isCapsLockActive = it },
+                                Modifier.weight(key.weight)
+                            )
+                        }
+                    }
 
-                    KeyCap(
-                        key = key,
-                        modifier = Modifier.weight(key.weight),
-                        isShiftActive = isShiftActive,
-                        isFnActive = isFnActive,
-                        isCapsLockActive = isCapsLockActive,
-                        isSticky = (stickyModifiers.toInt() and key.modifierBit.toInt()) != 0 || (key.isFn && isFnSticky),
-                        onPress = {
-                            if (key.isModifier) {
-                                if (stickyKeysEnabled) {
-                                    stickyModifiers = (stickyModifiers.toInt() xor key.modifierBit.toInt()).toByte()
-                                } else {
-                                    activeModifiers = (activeModifiers.toInt() or key.modifierBit.toInt()).toByte()
-                                }
-                            } else if (key.isFn) {
-                                if (stickyKeysEnabled) {
-                                    isFnSticky = !isFnSticky
-                                } else {
-                                    isFnPressed = true
-                                }
-                            } else if (key.keyCode == HidKeyCodes.KEY_CAPS_LOCK) {
-                                isCapsLockActive = !isCapsLockActive
-                                if (!pressedKeys.contains(key.keyCode)) {
-                                    pressedKeys.add(key.keyCode)
-                                }
-                                onKeyTyped()
-                            } else if (key.keyCode != HidKeyCodes.KEY_NONE) {
-                                if (!(key.keyCode == HidKeyCodes.KEY_K && isFnActive)) {
-                                    if (!pressedKeys.contains(key.keyCode)) {
-                                        pressedKeys.add(key.keyCode)
-                                    }
-                                    onKeyTyped()
-                                }
-                            }
-                            notifyChanges()
-                        },
-                        onRelease = {
-                            if (key.isModifier) {
-                                if (!stickyKeysEnabled) {
-                                    activeModifiers = (activeModifiers.toInt() and key.modifierBit.toInt().inv()).toByte()
-                                }
-                            } else if (key.isFn) {
-                                if (!stickyKeysEnabled) {
-                                    isFnPressed = false
-                                }
-                            } else if (key.keyCode == HidKeyCodes.KEY_CAPS_LOCK) {
-                                pressedKeys.remove(key.keyCode)
-                            } else if (key.keyCode != HidKeyCodes.KEY_NONE) {
-                                pressedKeys.remove(key.keyCode)
-                                if (stickyKeysEnabled && (stickyModifiers != 0.toByte() || isFnSticky)) {
-                                    stickyModifiers = 0
-                                    isFnSticky = false
-                                }
-                            }
-                            notifyChanges()
-                        },
-                        onDragIncrement = if (isStickKey) { direction ->
-                            val arrowKey = when (direction) {
-                                "UP" -> HidKeyCodes.KEY_UP
-                                "DOWN" -> HidKeyCodes.KEY_DOWN
-                                "LEFT" -> HidKeyCodes.KEY_LEFT
-                                "RIGHT" -> HidKeyCodes.KEY_RIGHT
-                                else -> HidKeyCodes.KEY_NONE
-                            }
-                            if (arrowKey != HidKeyCodes.KEY_NONE) {
-                                sendTemporaryKey(arrowKey)
-                            }
-                        } else null
-                    )
+                    // Gap (Empty or with special keys)
+                    Spacer(modifier = Modifier.width(40.dp))
+
+                    // Right half
+                    Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        splitRow.right.forEach { key ->
+                            KeyboardKey(
+                                key, isFnActive, isShiftActive, isCapsLockActive, stickyModifiers, isFnSticky,
+                                stickyKeysEnabled, activeModifiers, pressedKeys,
+                                onKeyTyped, { notifyChanges() }, ::sendTemporaryKey,
+                                { activeModifiers = it }, { stickyModifiers = it },
+                                { isFnPressed = it }, { isFnSticky = it }, { isCapsLockActive = it },
+                                Modifier.weight(key.weight)
+                            )
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun KeyboardKey(
+    key: KeyInfo,
+    isFnActive: Boolean,
+    isShiftActive: Boolean,
+    isCapsLockActive: Boolean,
+    stickyModifiers: Byte,
+    isFnSticky: Boolean,
+    stickyKeysEnabled: Boolean,
+    activeModifiers: Byte,
+    pressedKeys: MutableList<Byte>,
+    onKeyTyped: () -> Unit,
+    notifyChanges: () -> Unit,
+    sendTemporaryKey: (Byte) -> Unit,
+    setActiveModifiers: (Byte) -> Unit,
+    setStickyModifiers: (Byte) -> Unit,
+    setIsFnPressed: (Boolean) -> Unit,
+    setIsFnSticky: (Boolean) -> Unit,
+    setIsCapsLockActive: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isStickKey = key.keyCode == HidKeyCodes.KEY_K && isFnActive
+
+    KeyCap(
+        key = key,
+        modifier = modifier,
+        isShiftActive = isShiftActive,
+        isFnActive = isFnActive,
+        isCapsLockActive = isCapsLockActive,
+        isSticky = (stickyModifiers.toInt() and key.modifierBit.toInt()) != 0 || (key.isFn && isFnSticky),
+        onPress = {
+            if (key.isModifier) {
+                if (stickyKeysEnabled) {
+                    setStickyModifiers((stickyModifiers.toInt() xor key.modifierBit.toInt()).toByte())
+                } else {
+                    setActiveModifiers((activeModifiers.toInt() or key.modifierBit.toInt()).toByte())
+                }
+            } else if (key.isFn) {
+                if (stickyKeysEnabled) {
+                    setIsFnSticky(!isFnSticky)
+                } else {
+                    setIsFnPressed(true)
+                }
+            } else if (key.keyCode == HidKeyCodes.KEY_CAPS_LOCK) {
+                setIsCapsLockActive(!isCapsLockActive)
+                if (!pressedKeys.contains(key.keyCode)) {
+                    pressedKeys.add(key.keyCode)
+                }
+                onKeyTyped()
+            } else if (key.keyCode != HidKeyCodes.KEY_NONE) {
+                if (!(key.keyCode == HidKeyCodes.KEY_K && isFnActive)) {
+                    if (!pressedKeys.contains(key.keyCode)) {
+                        pressedKeys.add(key.keyCode)
+                    }
+                    onKeyTyped()
+                }
+            }
+            notifyChanges()
+        },
+        onRelease = {
+            if (key.isModifier) {
+                if (!stickyKeysEnabled) {
+                    setActiveModifiers((activeModifiers.toInt() and key.modifierBit.toInt().inv()).toByte())
+                }
+            } else if (key.isFn) {
+                if (!stickyKeysEnabled) {
+                    setIsFnPressed(false)
+                }
+            } else if (key.keyCode == HidKeyCodes.KEY_CAPS_LOCK) {
+                pressedKeys.remove(key.keyCode)
+            } else if (key.keyCode != HidKeyCodes.KEY_NONE) {
+                pressedKeys.remove(key.keyCode)
+                if (stickyKeysEnabled && (stickyModifiers != 0.toByte() || isFnSticky)) {
+                    setStickyModifiers(0)
+                    setIsFnSticky(false)
+                }
+            }
+            notifyChanges()
+        },
+        onDragIncrement = if (isStickKey) { direction ->
+            val arrowKey = when (direction) {
+                "UP" -> HidKeyCodes.KEY_UP
+                "DOWN" -> HidKeyCodes.KEY_DOWN
+                "LEFT" -> HidKeyCodes.KEY_LEFT
+                "RIGHT" -> HidKeyCodes.KEY_RIGHT
+                else -> HidKeyCodes.KEY_NONE
+            }
+            if (arrowKey != HidKeyCodes.KEY_NONE) {
+                sendTemporaryKey(arrowKey)
+            }
+        } else null
+    )
 }
 
 @Composable
