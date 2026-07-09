@@ -26,6 +26,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
     private lateinit var bluetoothHidService: BluetoothHidService
@@ -198,9 +204,15 @@ fun KeyboardUI(
 ) {
     var activeModifiers by remember { mutableStateOf(0.toByte()) }
     var stickyModifiers by remember { mutableStateOf(0.toByte()) }
+    var isFnPressed by remember { mutableStateOf(false) }
+    var isFnSticky by remember { mutableStateOf(false) }
+    var isCapsLockActive by remember { mutableStateOf(false) }
     val pressedKeys = remember { mutableStateListOf<Byte>() }
 
     val currentModifiers = (activeModifiers.toInt() or stickyModifiers.toInt()).toByte()
+    val isShiftActive = (currentModifiers.toInt() and HidKeyCodes.MOD_LEFT_SHIFT.toInt() != 0) ||
+                        (currentModifiers.toInt() and HidKeyCodes.MOD_RIGHT_SHIFT.toInt() != 0)
+    val isFnActive = isFnPressed || isFnSticky
 
     fun notifyChanges() {
         onKeysChanged(pressedKeys.toByteArray(), currentModifiers)
@@ -220,10 +232,15 @@ fun KeyboardUI(
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 row.forEach { key ->
+                    val isStickKey = key.keyCode == HidKeyCodes.KEY_K && isFnActive
+
                     KeyCap(
                         key = key,
                         modifier = Modifier.weight(key.weight),
-                        isSticky = (stickyModifiers.toInt() and key.modifierBit.toInt()) != 0,
+                        isShiftActive = isShiftActive,
+                        isFnActive = isFnActive,
+                        isCapsLockActive = isCapsLockActive,
+                        isSticky = (stickyModifiers.toInt() and key.modifierBit.toInt()) != 0 || (key.isFn && isFnSticky),
                         onPress = {
                             if (key.isModifier) {
                                 if (stickyKeysEnabled) {
@@ -231,6 +248,18 @@ fun KeyboardUI(
                                 } else {
                                     activeModifiers = (activeModifiers.toInt() or key.modifierBit.toInt()).toByte()
                                 }
+                            } else if (key.isFn) {
+                                if (stickyKeysEnabled) {
+                                    isFnSticky = !isFnSticky
+                                } else {
+                                    isFnPressed = true
+                                }
+                            } else if (key.keyCode == HidKeyCodes.KEY_CAPS_LOCK) {
+                                isCapsLockActive = !isCapsLockActive
+                                if (!pressedKeys.contains(key.keyCode)) {
+                                    pressedKeys.add(key.keyCode)
+                                }
+                                onKeyTyped()
                             } else if (key.keyCode != HidKeyCodes.KEY_NONE) {
                                 if (!pressedKeys.contains(key.keyCode)) {
                                     pressedKeys.add(key.keyCode)
@@ -244,14 +273,50 @@ fun KeyboardUI(
                                 if (!stickyKeysEnabled) {
                                     activeModifiers = (activeModifiers.toInt() and key.modifierBit.toInt().inv()).toByte()
                                 }
+                            } else if (key.isFn) {
+                                if (!stickyKeysEnabled) {
+                                    isFnPressed = false
+                                }
+                            } else if (key.keyCode == HidKeyCodes.KEY_CAPS_LOCK) {
+                                pressedKeys.remove(key.keyCode)
                             } else if (key.keyCode != HidKeyCodes.KEY_NONE) {
                                 pressedKeys.remove(key.keyCode)
-                                if (stickyKeysEnabled && stickyModifiers != 0.toByte()) {
+                                if (stickyKeysEnabled && (stickyModifiers != 0.toByte() || isFnSticky)) {
                                     stickyModifiers = 0
+                                    isFnSticky = false
                                 }
                             }
                             notifyChanges()
-                        }
+                        },
+                        onDrag = if (isStickKey) { dragAmount ->
+                            var arrowKey: Byte = HidKeyCodes.KEY_NONE
+                            val threshold = 20f
+                            if (abs(dragAmount.x) > abs(dragAmount.y)) {
+                                if (dragAmount.x > threshold) arrowKey = HidKeyCodes.KEY_RIGHT
+                                else if (dragAmount.x < -threshold) arrowKey = HidKeyCodes.KEY_LEFT
+                            } else {
+                                if (dragAmount.y > threshold) arrowKey = HidKeyCodes.KEY_DOWN
+                                else if (dragAmount.y < -threshold) arrowKey = HidKeyCodes.KEY_UP
+                            }
+
+                            if (arrowKey != HidKeyCodes.KEY_NONE) {
+                                if (!pressedKeys.contains(arrowKey)) {
+                                    pressedKeys.clear()
+                                    pressedKeys.add(arrowKey)
+                                    notifyChanges()
+                                    onKeyTyped()
+                                }
+                            } else {
+                                if (pressedKeys.isNotEmpty() && (
+                                    pressedKeys.contains(HidKeyCodes.KEY_UP) ||
+                                    pressedKeys.contains(HidKeyCodes.KEY_DOWN) ||
+                                    pressedKeys.contains(HidKeyCodes.KEY_LEFT) ||
+                                    pressedKeys.contains(HidKeyCodes.KEY_RIGHT))) {
+                                    pressedKeys.clear()
+                                    notifyChanges()
+                                }
+                            }
+                        } else null
                     )
                 }
             }
@@ -263,13 +328,18 @@ fun KeyboardUI(
 fun KeyCap(
     key: KeyInfo,
     modifier: Modifier = Modifier,
+    isShiftActive: Boolean = false,
+    isFnActive: Boolean = false,
+    isCapsLockActive: Boolean = false,
     isSticky: Boolean = false,
     onPress: () -> Unit,
-    onRelease: () -> Unit
+    onRelease: () -> Unit,
+    onDrag: ((Offset) -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     var isFirstRun by remember { mutableStateOf(true) }
+    var totalDrag by remember { mutableStateOf(Offset.Zero) }
 
     LaunchedEffect(isPressed) {
         if (isFirstRun) {
@@ -277,26 +347,49 @@ fun KeyCap(
             return@LaunchedEffect
         }
         if (isPressed) {
+            totalDrag = Offset.Zero
             onPress()
         } else {
             onRelease()
         }
     }
 
+    val label = when {
+        isFnActive && key.fnLabel != null -> key.fnLabel
+        isShiftActive && key.shiftedLabel != null -> key.shiftedLabel
+        isCapsLockActive && key.label.length == 1 && key.label[0].isLetter() -> key.label.uppercase()
+        else -> key.label
+    }
+
+    val isActiveHighlight = isPressed || isSticky || (key.keyCode == HidKeyCodes.KEY_CAPS_LOCK && isCapsLockActive)
+
     val backgroundColor = when {
-        isPressed -> MaterialTheme.colorScheme.primary
-        isSticky -> MaterialTheme.colorScheme.tertiary
+        isActiveHighlight -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     val contentColor = when {
-        isPressed -> MaterialTheme.colorScheme.onPrimary
-        isSticky -> MaterialTheme.colorScheme.onTertiary
+        isActiveHighlight -> MaterialTheme.colorScheme.onPrimary
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Surface(
-        modifier = modifier.fillMaxHeight(),
+        modifier = modifier
+            .fillMaxHeight()
+            .pointerInput(key.keyCode, isFnActive) {
+                if (onDrag != null) {
+                    detectDragGestures(
+                        onDragStart = { totalDrag = Offset.Zero },
+                        onDragEnd = { onRelease() },
+                        onDragCancel = { onRelease() },
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            totalDrag += dragAmount
+                            onDrag(totalDrag)
+                        }
+                    )
+                }
+            },
         shape = RoundedCornerShape(4.dp),
         color = backgroundColor,
         interactionSource = interactionSource,
@@ -307,7 +400,7 @@ fun KeyCap(
             modifier = Modifier.fillMaxSize()
         ) {
             Text(
-                text = key.label,
+                text = label,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = contentColor,
