@@ -286,7 +286,7 @@ fun KeyboardUI(
                     }
 
                     // Gap (Empty or with special keys)
-                    Spacer(modifier = Modifier.width(40.dp))
+                    Spacer(modifier = Modifier.width(120.dp))
 
                     // Right half
                     Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
